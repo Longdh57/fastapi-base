@@ -1,4 +1,6 @@
 alembic==1.5.8
+bcrypt==3.2.0
+cffi==1.14.5
 click==7.1.2
 dnspython==2.1.0
 email-validator==1.1.2
@@ -11,6 +13,7 @@ Mako==1.1.4
 MarkupSafe==1.1.1
 passlib==1.7.4
 psycopg2==2.8.6
+pycparser==2.20
 pydantic==1.8.1
 PyJWT==2.0.1
 python-dateutil==2.8.1
