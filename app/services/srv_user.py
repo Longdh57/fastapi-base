@@ -11,7 +11,7 @@ from app.models import User
 from app.core.config import settings
 from app.core.security import verify_password, get_password_hash
 from app.schemas.sche_token import TokenPayload
-from app.schemas.sche_user import UserCreateRequest, UserUpdateMeRequest
+from app.schemas.sche_user import UserCreateRequest, UserUpdateMeRequest, UserUpdateRequest
 
 
 class UserService(object):
@@ -70,10 +70,21 @@ class UserService(object):
 
     @staticmethod
     def update_me(data: UserUpdateMeRequest, current_user: User):
-        print(f'data: {data.__dict__}')
         current_user.full_name = current_user.full_name if data.full_name is None else data.full_name
         current_user.email = current_user.email if data.email is None else data.email
         current_user.hashed_password = current_user.hashed_password if data.password is None else get_password_hash(
             data.password)
         db.session.commit()
         return current_user
+
+    @staticmethod
+    def update(user: User, data: UserUpdateRequest):
+        print(f'data: {data.__dict__}')
+        user.full_name = user.full_name if data.full_name is None else data.full_name
+        user.email = user.email if data.email is None else data.email
+        user.hashed_password = user.hashed_password if data.password is None else get_password_hash(
+            data.password)
+        user.is_active = user.is_active if data.is_active is None else data.is_active
+        user.role = user.role if data.role is None else data.role.value
+        db.session.commit()
+        return user

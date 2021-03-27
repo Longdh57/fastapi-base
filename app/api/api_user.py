@@ -8,7 +8,7 @@ from app.helpers.exception_handler import CustomException
 from app.helpers.login_manager import permission_required
 from app.helpers.paging import Page, PaginationParams, paginate
 from app.schemas.sche_base import DataResponse
-from app.schemas.sche_user import UserItemResponse, UserCreateRequest, UserUpdateMeRequest
+from app.schemas.sche_user import UserItemResponse, UserCreateRequest, UserUpdateMeRequest, UserUpdateRequest
 from app.services.srv_user import UserService
 from app.models import User
 
@@ -43,6 +43,38 @@ def create(user_data: UserCreateRequest = Depends(),
             raise Exception('Email already exists')
         new_user = UserService().create_user(user_data)
         return DataResponse().success_response(data=new_user)
+    except Exception as e:
+        raise CustomException(http_code=400, code='400', message=str(e))
+
+
+@router.get("/{user_id}", response_model=DataResponse[UserItemResponse])
+@permission_required('admin')
+def detail(user_id: int, current_user: User = Depends(UserService().get_current_user)) -> Any:
+    """
+    API get Detail User
+    """
+    try:
+        exist_user = db.session.query(User).get(user_id)
+        if exist_user is None:
+            raise Exception('User already exists')
+        return DataResponse().success_response(data=exist_user)
+    except Exception as e:
+        raise CustomException(http_code=400, code='400', message=str(e))
+
+
+@router.put("/{user_id}", response_model=DataResponse[UserItemResponse])
+@permission_required('admin')
+def update(user_id: int, user_data: UserUpdateRequest,
+           current_user: User = Depends(UserService().get_current_user)) -> Any:
+    """
+    API update User
+    """
+    try:
+        exist_user = db.session.query(User).get(user_id)
+        if exist_user is None:
+            raise Exception('User already exists')
+        updated_user = UserService().update(user=exist_user, data=user_data)
+        return DataResponse().success_response(data=updated_user)
     except Exception as e:
         raise CustomException(http_code=400, code='400', message=str(e))
 
