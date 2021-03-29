@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from fastapi_sqlalchemy import db
 
@@ -11,7 +13,7 @@ router = APIRouter()
 
 
 @router.post('', response_model=DataResponse[UserItemResponse])
-def register(register_data: UserRegisterRequest = Depends()):
+def register(register_data: UserRegisterRequest) -> Any:
     try:
         exist_user = db.session.query(User).filter(User.email == register_data.email).first()
         if exist_user:

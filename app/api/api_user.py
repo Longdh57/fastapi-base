@@ -30,7 +30,7 @@ def get(params: PaginationParams = Depends()) -> Any:
 
 
 @router.post("", dependencies=[Depends(PermissionRequired('admin'))], response_model=DataResponse[UserItemResponse])
-def create(user_data: UserCreateRequest = Depends()) -> Any:
+def create(user_data: UserCreateRequest) -> Any:
     """
     API Create User
     """
@@ -53,7 +53,7 @@ def detail_me(current_user: User = Depends(UserService().get_current_user)) -> A
 
 
 @router.put("/me", dependencies=[Depends(login_required)], response_model=DataResponse[UserItemResponse])
-def update_me(user_data: UserUpdateMeRequest = Depends(),
+def update_me(user_data: UserUpdateMeRequest,
               current_user: User = Depends(UserService().get_current_user)) -> Any:
     """
     API Update current User
