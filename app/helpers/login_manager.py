@@ -1,20 +1,21 @@
-from functools import wraps
+from fastapi import HTTPException, Depends
 
-from fastapi import HTTPException
+from app.models import User
+from app.services.srv_user import UserService
 
 
-def permission_required(*permission):
-    def wrapper(fn):
+def login_required(http_authorization_credentials=Depends(UserService().reusable_oauth2)):
+    return UserService().get_current_user(http_authorization_credentials)
 
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            current_user = kwargs.get('current_user')
-            if current_user.role not in permission:
-                raise HTTPException(status_code=400,
-                                    detail=f'User {current_user.email} can not access this api')
-            else:
-                return fn(*args, **kwargs)
 
-        return wrapper
+class PermissionRequired:
+    def __init__(self, *args):
+        self.user = None
+        self.permissions = args
 
-    return wrapper
+    def __call__(self, user: User = Depends(login_required)):
+        self.user = user
+        print(f'[x] Permission: {self.permissions}')
+        if self.user.role not in self.permissions and self.permissions:
+            raise HTTPException(status_code=400,
+                                detail=f'User {self.user.email} can not access this api')
