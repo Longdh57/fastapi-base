@@ -11,7 +11,7 @@ from app.models import User
 from app.core.config import settings
 from app.core.security import verify_password, get_password_hash
 from app.schemas.sche_token import TokenPayload
-from app.schemas.sche_user import UserCreateRequest, UserUpdateMeRequest, UserUpdateRequest
+from app.schemas.sche_user import UserCreateRequest, UserUpdateMeRequest, UserUpdateRequest, UserRegisterRequest
 
 
 class UserService(object):
@@ -54,6 +54,19 @@ class UserService(object):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         return user
+
+    @staticmethod
+    def register_user(data: UserRegisterRequest):
+        register_user = User(
+            full_name=data.full_name,
+            email=data.email,
+            hashed_password=get_password_hash(data.password),
+            is_active=True,
+            role=data.role.value,
+        )
+        db.session.add(register_user)
+        db.session.commit()
+        return register_user
 
     @staticmethod
     def create_user(data: UserCreateRequest):

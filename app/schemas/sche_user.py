@@ -32,6 +32,13 @@ class UserCreateRequest(UserBase):
     role: UserRole = UserRole.GUEST
 
 
+class UserRegisterRequest(BaseModel):
+    full_name: str
+    email: EmailStr
+    password: str
+    role: UserRole = UserRole.GUEST
+
+
 class UserUpdateMeRequest(BaseModel):
     full_name: Optional[str]
     email: Optional[EmailStr]

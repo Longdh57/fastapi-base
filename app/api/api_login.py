@@ -6,10 +6,8 @@ from fastapi.params import Depends
 from fastapi_sqlalchemy import db
 
 from app.core.security import create_access_token
-from app.models import User
 from app.schemas.sche_base import DataResponse
 from app.schemas.sche_token import Token
-from app.schemas.sche_user import UserItemResponse
 from app.services.srv_user import UserService
 
 router = APIRouter()
