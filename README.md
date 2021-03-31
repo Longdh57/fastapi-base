@@ -30,6 +30,7 @@ $ git clone
 $ docker-compose up -d
 ```
 ## Cấu trúc project
+```
 .  
 ├── alembic  
 │   ├── versions    // thư mục chứa file migrations  
@@ -58,3 +59,4 @@ $ docker-compose up -d
 ├── pytest.ini      // file setup cho pytest  
 ├── README.md  
 └── requirements.txt
+```
