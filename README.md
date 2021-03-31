@@ -34,7 +34,8 @@ $ sudo -u postgres psql
 # GRANT ALL PRIVILEGES ON DATABASE fastapi_base TO db_user;
 
 // Clone project & run
-$ git clone
+$ git clone https://github.com/Longdh57/fastapi-base
+$ cd fastapi-base
 $ virtualenv -p python3 .venv
 $ source .venv/bin/activate
 $ pip install -r requirements.txt
@@ -46,7 +47,8 @@ $ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 - Clone Project
 - Run docker-compose
 ```
-$ git clone
+$ git clone https://github.com/Longdh57/fastapi-base
+$ cd fastapi-base
 $ DOCKER_BUILDKIT=1 docker build -t fastapi-base:latest .
 $ docker-compose up -d
 ```
