@@ -18,7 +18,15 @@ Base.metadata.create_all(bind=engine)
 def get_application() -> FastAPI:
     application = FastAPI(
         title=settings.PROJECT_NAME, docs_url="/docs", redoc_url=None,
-        openapi_url=f"{settings.API_PREFIX}/openapi.json"
+        openapi_url=f"{settings.API_PREFIX}/openapi.json",
+        description='''
+        Base frame with FastAPI micro framework + Postgresql
+            - Login/Register with JWT
+            - Permission
+            - CRUD User
+            - Unit testing with Pytest
+            - Dockerize
+        '''
     )
     application.add_middleware(
         CORSMiddleware,
