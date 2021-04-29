@@ -17,7 +17,7 @@ Base.metadata.create_all(bind=engine)
 
 def get_application() -> FastAPI:
     application = FastAPI(
-        title=settings.PROJECT_NAME, docs_url="/docs", redoc_url=None,
+        title=settings.PROJECT_NAME, docs_url="/docs", redoc_url='/re-docs',
         openapi_url=f"{settings.API_PREFIX}/openapi.json",
         description='''
         Base frame with FastAPI micro framework + Postgresql

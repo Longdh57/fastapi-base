@@ -1,5 +1,5 @@
 import logging
-from pydantic import BaseModel
+from pydantic import BaseModel, conint
 from abc import ABC, abstractmethod
 from typing import Optional, Generic, Sequence, Type, TypeVar
 
@@ -18,8 +18,8 @@ logger = logging.getLogger()
 
 
 class PaginationParams(BaseModel):
-    page_size: Optional[int] = 10
-    page: Optional[int] = 0
+    page_size: Optional[conint(gt=0, lt=1001)] = 10
+    page: Optional[conint(gt=0)] = 1
     sort_by: Optional[str] = 'id'
     order: Optional[str] = 'desc'
 
@@ -61,12 +61,9 @@ def paginate(model, query: Query, params: Optional[PaginationParams]) -> BasePag
 
         if params.order:
             direction = desc if params.order == 'desc' else asc
-            data = query.order_by(direction(getattr(model, params.sort_by))) \
-                .limit(params.page_size)\
-                .offset(params.page_size * params.page) \
-                .all()
-        else:
-            data = query.limit(params.page_size).offset(params.page_size * params.page).all()
+            query = query.order_by(direction(getattr(model, params.sort_by)))
+
+        data = query.limit(params.page_size).offset(params.page_size * (params.page-1)).all()
 
         metadata = MetadataSchema(
             current_page=params.page,

@@ -92,7 +92,6 @@ class UserService(object):
 
     @staticmethod
     def update(user: User, data: UserUpdateRequest):
-        print(f'data: {data.__dict__}')
         user.full_name = user.full_name if data.full_name is None else data.full_name
         user.email = user.email if data.email is None else data.email
         user.hashed_password = user.hashed_password if data.password is None else get_password_hash(
