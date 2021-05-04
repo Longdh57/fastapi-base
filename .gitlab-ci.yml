@@ -1,0 +1,85 @@
+image: docker/compose:alpine-1.27.4
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - release
+  - deploy
+
+before_script:
+  - docker version
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+build:
+  stage: build
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:latest || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+release-tag:
+  variables:
+    GIT_STRATEGY: none
+  stage: release
+  only:
+    refs:
+      - develop
+      - staging
+      - test
+  except:
+    - master
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
+release-latest:
+  variables:
+    GIT_STRATEGY: none
+  stage: release
+  only:
+    refs:
+      - master
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
+
+deploy:
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  only:
+    refs:
+      - master
+  before_script:
+    - apk update && apk add openssh-client bash
+  script:
+    # chạy ssh-agent tương ứng với Gitlab Runner hiện tại
+    - eval $(ssh-agent -s)
+
+    # thêm nội dung của biến SSH_PRIVATE_KEY vào agent store
+    - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
+
+    # tạo folder ~/.ssh
+    - mkdir -p ~/.ssh
+
+    # Scan lấy SSH Host key cho địa chỉ IP server
+    # Được kết quả bao nhiêu thì thêm vào file known_hosts
+    - ssh-keyscan -H $SSH_SERVER_IP >> ~/.ssh/known_hosts
+
+    # Sửa lại quyền của file known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+    # Thực hiện SSH vào server, login vào Registry, chuyển tới folder project
+    # Down project, pull image về, up project và xoá đi image cũ
+    - >
+      ssh $SSH_USER@$SSH_SERVER_IP
+      "docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY};
+      cd ${PATH_TO_PROJECT};
+      docker-compose down;
+      docker pull ${CI_REGISTRY_IMAGE}:latest;
+      docker-compose up -d;
+      docker image prune -f;"
