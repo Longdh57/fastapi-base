@@ -76,3 +76,7 @@ venv/*
 
 # docker local data
 docker/
+
+# .DS_Store
+.DS_Store
+*/.DS_Store
