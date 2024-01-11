@@ -30,22 +30,19 @@ def get(params: PaginationParams = Depends()) -> Any:
 
 
 @router.post("", dependencies=[Depends(PermissionRequired('admin'))], response_model=DataResponse[UserItemResponse])
-def create(user_data: UserCreateRequest) -> Any:
+def create(user_data: UserCreateRequest, user_service: UserService = Depends()) -> Any:
     """
     API Create User
     """
     try:
-        exist_user = db.session.query(User).filter(User.email == user_data.email).first()
-        if exist_user:
-            raise Exception('Email already exists')
-        new_user = UserService().create_user(user_data)
+        new_user = user_service.create_user(user_data)
         return DataResponse().success_response(data=new_user)
     except Exception as e:
         raise CustomException(http_code=400, code='400', message=str(e))
 
 
 @router.get("/me", dependencies=[Depends(login_required)], response_model=DataResponse[UserItemResponse])
-def detail_me(current_user: User = Depends(UserService().get_current_user)) -> Any:
+def detail_me(current_user: User = Depends(UserService.get_current_user)) -> Any:
     """
     API get detail current User
     """
@@ -54,47 +51,37 @@ def detail_me(current_user: User = Depends(UserService().get_current_user)) -> A
 
 @router.put("/me", dependencies=[Depends(login_required)], response_model=DataResponse[UserItemResponse])
 def update_me(user_data: UserUpdateMeRequest,
-              current_user: User = Depends(UserService().get_current_user)) -> Any:
+              current_user: User = Depends(UserService.get_current_user),
+              user_service: UserService = Depends()) -> Any:
     """
     API Update current User
     """
     try:
-        if user_data.email is not None:
-            exist_user = db.session.query(User).filter(
-                User.email == user_data.email, User.id != current_user.id).first()
-            if exist_user:
-                raise Exception('Email already exists')
-        updated_user = UserService().update_me(data=user_data, current_user=current_user)
+        updated_user = user_service.update_me(data=user_data, current_user=current_user)
         return DataResponse().success_response(data=updated_user)
     except Exception as e:
         raise CustomException(http_code=400, code='400', message=str(e))
 
 
 @router.get("/{user_id}", dependencies=[Depends(login_required)], response_model=DataResponse[UserItemResponse])
-def detail(user_id: int) -> Any:
+def detail(user_id: int, user_service: UserService = Depends()) -> Any:
     """
     API get Detail User
     """
     try:
-        exist_user = db.session.query(User).get(user_id)
-        if exist_user is None:
-            raise Exception('User already exists')
-        return DataResponse().success_response(data=exist_user)
+        return DataResponse().success_response(data=user_service.get(user_id))
     except Exception as e:
         raise CustomException(http_code=400, code='400', message=str(e))
 
 
 @router.put("/{user_id}", dependencies=[Depends(PermissionRequired('admin'))],
             response_model=DataResponse[UserItemResponse])
-def update(user_id: int, user_data: UserUpdateRequest) -> Any:
+def update(user_id: int, user_data: UserUpdateRequest, user_service: UserService = Depends()) -> Any:
     """
     API update User
     """
     try:
-        exist_user = db.session.query(User).get(user_id)
-        if exist_user is None:
-            raise Exception('User already exists')
-        updated_user = UserService().update(user=exist_user, data=user_data)
+        updated_user = user_service.update(user_id=user_id, data=user_data)
         return DataResponse().success_response(data=updated_user)
     except Exception as e:
         raise CustomException(http_code=400, code='400', message=str(e))

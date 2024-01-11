@@ -17,6 +17,9 @@ from app.schemas.sche_user import UserCreateRequest, UserUpdateMeRequest, UserUp
 class UserService(object):
     __instance = None
 
+    def __init__(self) -> None:
+        pass
+
     reusable_oauth2 = HTTPBearer(
         scheme_name='Authorization'
     )
@@ -45,7 +48,7 @@ class UserService(object):
                 algorithms=[settings.SECURITY_ALGORITHM]
             )
             token_data = TokenPayload(**payload)
-        except(jwt.PyJWTError, ValidationError):
+        except (jwt.PyJWTError, ValidationError):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Could not validate credentials",
@@ -57,6 +60,9 @@ class UserService(object):
 
     @staticmethod
     def register_user(data: UserRegisterRequest):
+        exist_user = db.session.query(User).filter(User.email == data.email).first()
+        if exist_user:
+            raise Exception('Email already exists')
         register_user = User(
             full_name=data.full_name,
             email=data.email,
@@ -70,6 +76,9 @@ class UserService(object):
 
     @staticmethod
     def create_user(data: UserCreateRequest):
+        exist_user = db.session.query(User).filter(User.email == data.email).first()
+        if exist_user:
+            raise Exception('Email already exists')
         new_user = User(
             full_name=data.full_name,
             email=data.email,
@@ -83,6 +92,11 @@ class UserService(object):
 
     @staticmethod
     def update_me(data: UserUpdateMeRequest, current_user: User):
+        if data.email is not None:
+            exist_user = db.session.query(User).filter(
+                User.email == data.email, User.id != current_user.id).first()
+            if exist_user:
+                raise Exception('Email already exists')
         current_user.full_name = current_user.full_name if data.full_name is None else data.full_name
         current_user.email = current_user.email if data.email is None else data.email
         current_user.hashed_password = current_user.hashed_password if data.password is None else get_password_hash(
@@ -91,7 +105,10 @@ class UserService(object):
         return current_user
 
     @staticmethod
-    def update(user: User, data: UserUpdateRequest):
+    def update(user_id: int, data: UserUpdateRequest):
+        user = db.session.query(User).get(user_id)
+        if user is None:
+            raise Exception('User not exists')
         user.full_name = user.full_name if data.full_name is None else data.full_name
         user.email = user.email if data.email is None else data.email
         user.hashed_password = user.hashed_password if data.password is None else get_password_hash(
@@ -100,3 +117,10 @@ class UserService(object):
         user.role = user.role if data.role is None else data.role.value
         db.session.commit()
         return user
+
+    @staticmethod
+    def get(user_id):
+        exist_user = db.session.query(User).get(user_id)
+        if exist_user is None:
+            raise Exception('User not exists')
+        return exist_user

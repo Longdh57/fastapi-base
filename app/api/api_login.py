@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi_sqlalchemy import db
 from pydantic import EmailStr, BaseModel
 
@@ -18,8 +18,8 @@ class LoginRequest(BaseModel):
 
 
 @router.post('', response_model=DataResponse[Token])
-def login_access_token(form_data: LoginRequest):
-    user = UserService().authenticate(email=form_data.username, password=form_data.password)
+def login_access_token(form_data: LoginRequest, user_service: UserService = Depends()):
+    user = user_service.authenticate(email=form_data.username, password=form_data.password)
     if not user:
         raise HTTPException(status_code=400, detail='Incorrect email or password')
     elif not user.is_active:
