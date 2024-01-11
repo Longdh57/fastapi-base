@@ -108,7 +108,7 @@ class UserService(object):
     def update(user_id: int, data: UserUpdateRequest):
         user = db.session.query(User).get(user_id)
         if user is None:
-            raise Exception('User already exists')
+            raise Exception('User not exists')
         user.full_name = user.full_name if data.full_name is None else data.full_name
         user.email = user.email if data.email is None else data.email
         user.hashed_password = user.hashed_password if data.password is None else get_password_hash(
@@ -122,5 +122,5 @@ class UserService(object):
     def get(user_id):
         exist_user = db.session.query(User).get(user_id)
         if exist_user is None:
-            raise Exception('User already exists')
+            raise Exception('User not exists')
         return exist_user
